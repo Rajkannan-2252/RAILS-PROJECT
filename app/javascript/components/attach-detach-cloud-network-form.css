@@ -1,0 +1,109 @@
+.cloud-network-form {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.cloud-network-form h2 {
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.cloud-network-form .form-group {
+  margin-bottom: 20px;
+}
+
+.cloud-network-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.cloud-network-form select.form-control {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 16px;
+  appearance: menulist;
+}
+
+.cloud-network-form .warning-message {
+  margin: 15px 0;
+  padding: 12px;
+  background-color: #fff3cd;
+  border-left: 4px solid #ffc107;
+  color: #856404;
+  display: flex;
+  align-items: flex-start;
+}
+
+.cloud-network-form .warning-message i {
+  margin-right: 10px;
+  margin-top: 3px;
+}
+
+.cloud-network-form .form-actions {
+  margin-top: 25px;
+  display: flex;
+  gap: 10px;
+}
+
+.cloud-network-form .btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cloud-network-form .btn-primary {
+  background-color: #0d6efd;
+  border: 1px solid #0d6efd;
+  color: white;
+}
+
+.cloud-network-form .btn-primary:hover:not(:disabled) {
+  background-color: #0b5ed7;
+}
+
+.cloud-network-form .btn-secondary {
+  background-color: white;
+  border: 1px solid #6c757d;
+  color: #6c757d;
+}
+
+.cloud-network-form .btn-secondary:hover:not(:disabled) {
+  background-color: #f1f3f5;
+}
+
+.cloud-network-form button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.cloud-network-form .loading {
+  padding: 20px 0;
+  text-align: center;
+  color: #666;
+}
+
+.cloud-network-form .error-message {
+  padding: 15px;
+  background-color: #f8d7da;
+  border-left: 4px solid #dc3545;
+  color: #721c24;
+  margin-bottom: 20px;
+}
+
+.cloud-network-form .empty-message {
+  padding: 15px;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  color: #495057;
+  font-style: italic;
+}

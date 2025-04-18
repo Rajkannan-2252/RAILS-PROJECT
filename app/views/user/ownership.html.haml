@@ -1,0 +1,9 @@
+%h3= _("Set Ownership")
+= react('OwnershipForm', :ownership_items => @ownershipitems, :user_options => @users)
+
+%hr
+%h3= _("Affected Items")
+- if @ownershipitems.present?
+  = render :partial => "layouts/gtl", :locals => {:model => "ContainerProject"}
+- else
+  %p= _("No items selected for ownership.")

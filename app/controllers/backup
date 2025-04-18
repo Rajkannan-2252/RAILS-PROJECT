@@ -1,0 +1,38 @@
+# app/controllers/monitoring_controller.rb
+class MonitoringController < ApplicationController
+  def index
+    service = UptimeKumaService.new
+    @status_data = service.get_status_page
+    @heartbeat_data = service.get_heartbeat
+    
+    # Process the data to combine status and heartbeat information
+    if @status_data && @heartbeat_data
+      process_monitor_data
+    end
+  end
+  
+  private
+  
+  def process_monitor_data
+    return unless @status_data && @status_data['publicGroupList'] && @heartbeat_data
+    
+    # Map the uptime data from heartbeat to the monitors
+    uptime_data = @heartbeat_data['uptimeList'] || {}
+    
+    @status_data['publicGroupList'].each do |group|
+      group['monitorList'].each do |monitor|
+        # Find corresponding uptime data (assuming monitor has an id that matches the key in uptimeList)
+        monitor_id = monitor['id'].to_s
+        
+        # Add the uptime percentage from the heartbeat data
+        uptime_key = "#{monitor_id}_24" # Format from your example JSON
+        monitor['uptime'] = uptime_data[uptime_key] ? (uptime_data[uptime_key] * 100).round(2) : nil
+        
+        # Set heartbeat list if available
+        if @heartbeat_data['heartbeatList'] && @heartbeat_data['heartbeatList'][monitor_id]
+          monitor['heartbeatList'] = @heartbeat_data['heartbeatList'][monitor_id]
+        end
+      end
+    end
+  end
+end

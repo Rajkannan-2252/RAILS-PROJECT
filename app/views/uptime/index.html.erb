@@ -1,0 +1,15 @@
+<h1>Uptime Kuma Status</h1>
+
+<% if @uptime_data %>
+  <ul>
+    <% @uptime_data["monitors"].each do |monitor| %>
+      <li>
+        <strong><%= monitor["name"] %></strong> - 
+        <%= monitor["uptime"] %>% uptime - 
+        <%= monitor["status"] == 1 ? "✅ Up" : "❌ Down" %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>Error fetching data.</p>
+<% end %>

@@ -1,0 +1,256 @@
+require 'json'
+class SupportController < ApplicationController
+  # # GETs should be safe (see http://www.w3.org/2001/tag/doc/whenToUseGet.html)
+  # verify  :method => :post, :only => [ :destroy, :create, :update ],
+  #    :redirect_to => { :action => :index }
+
+  before_action :get_session_data
+  after_action :cleanup_action
+  after_action :set_session_data
+  before_action :set_zammad_api
+
+  def index
+    about
+    render :action => "show"
+  end
+
+  def show
+  end
+
+  def about
+    @vmdb = {:version => Vmdb::Appliance.VERSION, :build => Vmdb::Appliance.BUILD}
+    @user_role = User.current_user.miq_user_role_name
+    @pdf_documents = pdf_documents
+    @layout = "about"
+  end
+
+  # Fetches all tickets from Zammad
+  def zammad_integration
+    begin
+      response = RestClient::Request.execute(
+        method: :get,
+        url: "#{@zammad_base_url}/tickets",
+        headers: @headers,
+        timeout: 30
+      )
+      @tickets = JSON.parse(response.body)
+    rescue => e
+      Rails.logger.error "Zammad API Error: #{e.message}"
+      @tickets = []
+    end
+  end
+
+    # Fetches a single ticket and its articles (replies)
+    def ticket_details
+      ticket_id = params[:id]
+      
+      begin
+        # Fetch ticket details
+        ticket_response = RestClient.get(
+          "#{@zammad_base_url}/tickets/#{ticket_id}?expand=articles&full=true",
+          @headers
+        )
+        ticket_data = JSON.parse(ticket_response.body)
+        
+        # Process ticket data
+        @ticket = ticket_data.dig('assets', 'Ticket', ticket_id.to_s) || {}
+        process_articles(ticket_data)
+
+        if @articles.empty?
+          articles_response = RestClient.get(
+            "#{@zammad_base_url}/ticket_articles/by_ticket/#{ticket_id}",
+            @headers
+          )
+          @articles = JSON.parse(articles_response.body)
+        end
+        
+        # Fetch dynamic options
+        fetch_states
+        fetch_priorities
+        fetch_products
+  
+      rescue RestClient::ExceptionWithResponse => e
+        handle_api_error(e)
+        set_fallback_values
+      end
+    end
+    
+    def create_note
+      ticket_id = params[:id]
+      note_text = params[:note]
+      attachment = params[:attachment]
+
+      unless ticket_id.present?
+        flash[:error] = "Invalid ticket ID"
+        return redirect_to support_zammad_integration_path
+      end
+
+      if params[:attachment]
+        params[:attachment].rewind 
+      end
+
+      begin
+        payload = {
+          ticket_id: ticket_id,
+          body: note_text,
+          type: 'note',
+          content_type: 'text/html'
+        }
+    
+        if attachment.present?
+          payload[:attachments] = [{
+            filename: attachment.original_filename,
+            data: Base64.strict_encode64(attachment.read),
+            'mime-type': attachment.content_type
+          }]
+        end
+        
+        response = RestClient.post(
+          "#{@zammad_base_url}/ticket_articles",
+          payload.to_json,
+          @headers.merge('Content-Type' => 'application/json')
+        )
+    
+        if response.code == 201
+          flash[:success] = 'Note added successfully'
+        else
+          flash[:error] = 'Failed to add note'
+        end
+    
+      rescue RestClient::ExceptionWithResponse => e
+        Rails.logger.error "Zammad API Error: #{e.response}"
+        flash[:error] = "Error adding note: #{JSON.parse(e.response.body)['error']}"
+      rescue => e
+        Rails.logger.error "Error: #{e.message}"
+        flash[:error] = "Error adding note: #{e.message}"
+      end
+    
+      redirect_to support_ticket_details_path(ticket_id)
+    end
+    
+    def update_ticket
+      ticket_id = params[:id]
+      update_params = {
+        state: params[:state],
+        priority: params[:priority],
+        product: params[:product]
+      }
+  
+      begin
+        response = RestClient.patch(
+          "#{@zammad_base_url}/tickets/#{ticket_id}",
+          { ticket: update_params }.to_json,
+          @headers
+        )
+        
+        flash[:notice] = "Ticket updated successfully"
+      rescue RestClient::ExceptionWithResponse => e
+        flash[:alert] = "Update failed: #{JSON.parse(e.response.body)['error']}"
+      end
+      
+      redirect_to ticket_details_path(id: ticket_id)
+    end
+
+  private ############################
+
+   def process_articles(ticket_data)
+    article_ids = @ticket['article_ids'] || []
+    @articles = article_ids.map do |id|
+      article = ticket_data.dig('assets', 'TicketArticle', id.to_s)
+      next unless article
+      
+      # Add created_by email
+      if (user_id = article['created_by_id'])
+        article['created_by'] = ticket_data.dig('assets', 'User', user_id.to_s, 'email')
+      end
+      
+      # Sanitize body content
+      article['body'] = sanitize_body(article['body']) if article['body']
+      article
+    end.compact
+  end
+
+  def sanitize_body(body)
+    sanitize(
+      body.gsub(/\n/, '<br>'),
+      tags: %w[br p strong em a ul ol li hr],
+      attributes: %w[href target]
+    ).gsub(/<br>\s*<br>/, '<br>').squish
+  end
+
+  def fetch_states
+    response = RestClient.get("#{@zammad_base_url}/ticket_states", @headers)
+    @states = JSON.parse(response.body).map { |s| s['name'] }
+  rescue
+    @states = ['New', 'Open', 'Closed', 'Waiting on Customer', 'Waiting on Company']
+  end
+
+  def fetch_priorities
+    response = RestClient.get("#{@zammad_base_url}/ticket_priorities", @headers)
+    @priorities = JSON.parse(response.body).map { |p| p['name'] }
+  rescue
+    @priorities = ['Low', 'Medium', 'High']
+  end
+
+  def fetch_products
+    response = RestClient.get("#{@zammad_base_url}/object_manager_attributes?name=product", @headers)
+    product_data = JSON.parse(response.body).first
+    @products = product_data.dig('data', 'options') || ['CMP', 'Company Monitoring']
+  rescue
+    @products = ['CMP', 'Company Monitoring']
+  end
+
+  def handle_api_error(exception)
+    Rails.logger.error "Zammad API Error: #{exception.message}"
+    @ticket = nil
+    @articles = []
+  end
+
+  def set_fallback_values
+    @states ||= ['New', 'Open', 'Closed']
+    @priorities ||= ['Low', 'Medium', 'High']
+    @products ||= ['CMP', 'Company Monitoring']
+  end
+
+      # Set API base URL and headers (called before actions)
+      def set_zammad_api
+        @zammad_base_url = "http://192.168.210.84/api/v1"
+        @headers = {
+          Authorization: "Token token=YzDDgL3yzN_JHuodGVZRai2R3d4yTTjsEOy3rLX9CSQ-lw04C28nS8UBCH6gEteU",
+          Content_Type: 'application/json'
+        }
+     end
+
+
+   def safe_time_format(time_str)
+    return 'N/A' unless time_str.present?
+    
+    begin
+      Time.parse(time_str.to_s).strftime('%m/%d/%Y %H:%M')
+    rescue ArgumentError
+      'Invalid Date'
+    end
+  end
+
+
+  def get_layout
+    session[:layout] == "support" ? "support" : "about"
+  end
+
+
+
+  def set_session_data
+    session[:layout] = @layout
+  end
+
+  def pdf_document_files
+    Dir.glob(Rails.root.join("public/doc/*.pdf"))
+  end
+
+  def pdf_documents
+    pdf_document_files.sort.each_with_object({}) do |f, h|
+      f = File.basename(f, ".pdf")
+      h[f] = f.titleize
+    end
+  end
+end

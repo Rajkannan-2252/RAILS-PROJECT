@@ -1,0 +1,16 @@
+<% content_for :title do %>
+  <%= _("Attach Cloud Network %{name}") % {:name => @network.name} %>
+<% end %>
+
+<% content_for :javascript_packs do %>
+  <%= javascript_pack_tag 'cloud_network' %>
+<% end %>
+
+<div id="cloud-network-form-container" 
+     data-network-id="<%= @network.id %>" 
+     data-network-name="<%= @network.name %>" 
+     data-form-mode="attach">
+  <div class="loading-container">
+    <p>Loading attach form...</p>
+  </div>
+</div>

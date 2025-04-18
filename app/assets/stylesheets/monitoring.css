@@ -1,0 +1,127 @@
+.status-dashboard {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    color: #333;
+  }
+  
+  .status-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+  
+  .status-logo {
+    color: #0030b8;
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-right: 15px;
+  }
+  
+  .status-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  .status-overview {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .status-operational {
+    display: flex;
+    align-items: center;
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+  
+  .status-operational .status-icon {
+    color: #22c55e;
+    margin-right: 10px;
+    font-size: 1.5rem;
+  }
+  
+  .services-heading {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  
+  .service-item {
+    background: white;
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .service-info {
+    display: flex;
+    align-items: center;
+  }
+  
+  .service-uptime {
+    background: #22c55e;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-right: 15px;
+    min-width: 60px;
+    text-align: center;
+  }
+  
+  .service-name {
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+  
+  .service-timeline {
+    display: flex;
+    align-items: center;
+  }
+  
+  .service-timeline-bars {
+    display: flex;
+    margin-right: 15px;
+  }
+  
+  .timeline-bar {
+    width: 3px;
+    height: 25px;
+    background: #22c55e;
+    margin-right: 2px;
+  }
+  
+  .service-time {
+    display: flex;
+    font-size: 0.9rem;
+    color: #666;
+  }
+  
+  .service-time-ago {
+    margin-right: 60px;
+  }
+  
+  /* Partial uptime styling */
+  .service-uptime.partial {
+    background: #f59e0b;
+  }
+  
+  /* For downtime */
+  .service-uptime.down {
+    background: #ef4444;
+  }
+  
+  .timeline-bar.down {
+    background: #ef4444;
+  }

@@ -1,0 +1,71 @@
+.attach-detach-cloud-network-form {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  
+  .spinner {
+    margin: 40px auto;
+    display: block;
+  }
+  
+  .custom-button-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+    
+    .btnRight {
+      margin-left: 10px;
+    }
+  }
+  
+  .pf-c-form__label-text {
+    font-weight: 500;
+  }
+  
+  .pf-c-form__group {
+    margin-bottom: 16px;
+  }
+  
+  .pf-c-form__helper-text {
+    font-size: 14px;
+    margin-top: 4px;
+  }
+  
+  .pf-c-select {
+    width: 100%;
+  }
+  
+  [variant="warning"] {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+    color: #856404;
+    padding: 12px;
+    margin: 15px 0;
+    font-size: 14px;
+    display: flex;
+    align-items: flex-start;
+    
+    &::before {
+      content: '\f071'; // Warning icon
+      font-family: 'FontAwesome';
+      margin-right: 10px;
+    }
+  }
+  
+  // Make sure select boxes are rendered correctly
+  select.pf-c-form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #8a8d90;
+    border-radius: 3px;
+    background-color: white;
+    font-size: 16px;
+    appearance: menulist;
+    
+    &:focus {
+      border-color: #0066cc;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+    }
+  }
+}
